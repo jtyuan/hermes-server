@@ -1,0 +1,5 @@
+# Messages
+
+delivery.list.title={0,choice,0#No deliveries|1#One delivery|1<{0,number,integer} deliveries} found
+
+courier.list.title={0,choice,0#No couriers|1#One courier|1<{0,number,integer} couriers} found

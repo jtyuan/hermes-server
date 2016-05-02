@@ -1,0 +1,47 @@
+@(deliveryForm: Form[Delivery])
+
+@import helper._
+
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
+
+@main {
+    
+    <h1>Add a delivery task</h1>
+    
+    @form(routes.DeliveryController.save()) {
+        
+        <fieldset>
+        
+            @inputText(deliveryForm("order_id"), '_label -> "Delivery Task ID", '_help -> "")
+            @inputText(deliveryForm("name"), '_label -> "Recipient Name", '_help -> "")
+            @inputText(deliveryForm("phone"), '_label -> "Recipient Phone #", '_help -> "")
+            @inputText(deliveryForm("address"), '_label -> "Recipient Address", '_help -> "")
+            @inputDate(deliveryForm("appointment_date"), '_label -> "Appointment Date", '_help -> "")
+            @inputText(deliveryForm("appointment_time_begin"), '_label -> "Time Window - Begin", '_help -> "")
+            @inputText(deliveryForm("appointment_time_end"), '_label -> "Time Window - End", '_help -> "")
+            @inputText(deliveryForm("sign_time"), '_label -> "Delivery Time (s)", '_help -> "")
+            @inputText(deliveryForm("status"), '_label -> "Delivery status", '_help -> "")
+            @inputText(deliveryForm("arrive_time"), '_label -> "Arrive Time (s)", '_help -> "")
+            @inputText(deliveryForm("wait_time"), '_label -> "Wait Time (s)", '_help -> "")
+            @inputText(deliveryForm("leave_time"), '_label -> "Leave Time (s)", '_help -> "")
+            @inputText(deliveryForm("real_time"), '_label -> "Real Deliver Time (s)", '_help -> "")
+            @inputText(deliveryForm("msg"), '_label -> "Additional Information", '_help -> "")
+
+            @select(
+                deliveryForm("courier.name"),
+                options(Courier.options),
+                '_label -> "Courier", '_default -> "-- Choose a courier --",
+                '_showConstraints -> false
+            )
+            
+
+        </fieldset>
+        
+        <div class="actions">
+            <input type="submit" value="Create this computer" class="btn primary"> or 
+            <a href="@routes.DeliveryController.list()" class="btn">Cancel</a>
+        </div>
+        
+    }
+    
+}

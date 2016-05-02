@@ -1,0 +1,25 @@
+New log file opened at Tue Apr 19 20:20:33 CST 2016 by 60289@bilibili-MacBook-Pro.local
+Taking next connection to: 53556
+New client attempting to connect on port: 53557-53556
+  Address = /192.168.1.3:53556
+This client on port 53557 has uuid d5faa107-138c-483b-9a96-32b8592280df configName activator humanReadableName Activator protocolVersion 3 featureTags Vector()
+Connected Clients: activator-d5faa107-138c-483b-9a96-32b8592280df
+Taking next connection to: 53556
+New client attempting to connect on port: 54213-53556
+  Address = /192.168.1.3:53556
+Handshake exception on socket: 54213
+sbt.impl.ipc.HandshakeException: Unable to perform handshake
+	at sbt.impl.ipc.Peer.handshake(IPC.scala:46)
+	at sbt.impl.ipc.MultiClientServer.<init>(IPC.scala:150)
+	at sbt.server.SbtServerSocketHandler$$anon$1.run(SbtServerSocketHandler.scala:43)
+Caused by: java.io.EOFException
+	at java.io.DataInputStream.readInt(DataInputStream.java:392)
+	at sbt.impl.ipc.Peer.receive(IPC.scala:95)
+	at sbt.impl.ipc.Peer.handshake(IPC.scala:49)
+	... 2 more
+Taking next connection to: 53556
+New client attempting to connect on port: 54214-53556
+  Address = /192.168.1.3:53556
+This client on port 54214 has uuid aad0972c-7acb-450a-a49e-c607985cd653 configName activator humanReadableName Activator protocolVersion 3 featureTags Vector()
+Connected Clients: activator-d5faa107-138c-483b-9a96-32b8592280df, activator-aad0972c-7acb-450a-a49e-c607985cd653
+Taking next connection to: 53556

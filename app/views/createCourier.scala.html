@@ -1,0 +1,37 @@
+@(courierForm: Form[Courier])
+
+@import helper._
+
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) }
+
+@main {
+
+    <h1>Add a delivery task</h1>
+
+    @form(routes.CourierController.save()) {
+
+        <fieldset>
+
+
+            @inputText(courierForm("courier_id"), '_label -> "Courier ID", '_help -> "")
+            @inputText(courierForm("name"), '_label -> "Courier Name", '_help -> "")
+            @inputText(courierForm("phone"), '_label -> "Courier Phone #", '_help -> "")
+
+            @select(
+                courierForm("working_area.id"),
+                options(WorkingArea.options),
+                '_label -> "Working Area", '_default -> "-- Choose a working area --",
+                '_showConstraints -> false
+            )
+
+
+        </fieldset>
+
+        <div class="actions">
+            <input type="submit" value="Create this courier" class="btn primary"> or
+            <a href="@routes.CourierController.list()" class="btn">Cancel</a>
+        </div>
+
+    }
+
+}

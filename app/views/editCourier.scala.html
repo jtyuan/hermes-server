@@ -1,0 +1,42 @@
+@(id: Long, courierForm: Form[Courier])
+
+@import helper._
+
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
+
+@main {
+    
+    <h1>Edit courier</h1>
+    
+    @form(routes.CourierController.update(id)) {
+        
+        <fieldset>
+
+            @inputText(courierForm("courier_id"), '_label -> "Courier ID", '_help -> "")
+            @inputText(courierForm("name"), '_label -> "Courier Name", '_help -> "")
+            @inputText(courierForm("phone"), '_label -> "Courier Phone #", '_help -> "")
+            @inputText(courierForm("access_token"), '_label -> "Access Token", '_help -> "")
+            @inputText(courierForm("refresh_token"), '_label -> "Refresh Token", '_help -> "")
+            @inputText(courierForm("expires_in"), '_label -> "Expires In (s)", '_help -> "")
+
+            @select(
+                courierForm("working_area.id"),
+                options(WorkingArea.options),
+                '_label -> "Working Area", '_default -> "-- Choose a working area --",
+                '_showConstraints -> false
+            )
+
+        </fieldset>
+        
+        <div class="actions">
+            <input type="submit" value="Save this delivery task" class="btn primary"> or
+            <a href="@routes.CourierController.list()" class="btn">Cancel</a>
+        </div>
+        
+    }
+    
+    @form(routes.CourierController.delete(id), 'class -> "topRight") {
+        <input type="submit" value="Delete this delivery task" class="btn danger">
+    }
+    
+}

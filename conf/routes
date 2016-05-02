@@ -1,0 +1,50 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+# Default path will just redirect to the delivery list
+GET     /                          controllers.DeliveryController.index()
+
+# Delivery task list (look at the default values for pagination parameters)
+GET     /delivery                  controllers.DeliveryController.list(p:Int ?= 0, s ?= "name", o ?= "asc", f ?= "")
+
+# Add delivery task
+GET     /delivery/new              controllers.DeliveryController.create()
+POST    /delivery                  controllers.DeliveryController.save()
+
+# Edit existing delivery task
+GET     /delivery/:id              controllers.DeliveryController.edit(id:Long)
+POST     /delivery/:id              controllers.DeliveryController.update(id:Long)
+
+# Delete a delivery task
+POST    /delivery/:id/delete       controllers.DeliveryController.delete(id:Long)
+
+
+# Delivery task list (look at the default values for pagination parameters)
+GET     /courier                   controllers.CourierController.list(p:Int ?= 0, s ?= "name", o ?= "asc", f ?= "")
+
+# Add delivery task
+GET     /courier/new               controllers.CourierController.create()
+POST    /courier                   controllers.CourierController.save()
+
+# Edit existing delivery task
+GET     /courier/:id               controllers.CourierController.edit(id:Long)
+PUT     /courier/:id               controllers.CourierController.update(id:Long)
+
+# Delete a delivery task
+POST    /courier/:id/delete        controllers.CourierController.delete(id:Long)
+
+
+GET     /courier/:id/task/:date    controllers.CourierController.schedule(id:String, date:String)
+
+POST    /oauth                     controllers.OAuthController.login()
+
+GET     /admin/init                controllers.DeliveryController.loadPresetOrders()
+GET     /admin/clean               controllers.DeliveryController.clear()
+
+#GET     /courier/:id               controllers.DeliveryController.login(id:Long)
+#POST    /courier                   controllers.DeliveryController.register(name:String, phone:String)
+
+# Map static resources from the /public folder to the /assets URL path
+GET     /assets/*file              controllers.Assets.at(path="/public", file)
+
