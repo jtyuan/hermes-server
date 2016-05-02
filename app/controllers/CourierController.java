@@ -122,6 +122,13 @@ public class CourierController extends Controller {
         return ok(Json.toJson(resultWrapper));
     }
 
+    public static Result fetch(String id, String date) {
+        List<Delivery> deliveries = Delivery.find.where().like("courier.courier_id", id).findList();
+        ResultWrapper resultWrapper = new ResultWrapper("success", id, ResultWrapper.toResultOrderList(deliveries));
+        System.out.println(ok(Json.toJson(resultWrapper)));
+        return ok(Json.toJson(resultWrapper));
+    }
+
 
     private static class ResultWrapper {
         String status;
@@ -173,9 +180,32 @@ public class CourierController extends Controller {
                 delivery.msg = o.getFailure_reason();
                 delivery.courier = courier;
                 delivery.save();
+
+                o.setName(delivery.name);
+                o.setPhone(delivery.phone);
             }
         }
 
+        public static List<ResultOrder> toResultOrderList(List<Delivery> deliveries) {
+            List<ResultOrder> result = new ArrayList<>();
+            for (Delivery d : deliveries) {
+                ResultOrder ro = new ResultOrder();
+                ro.setOrderID(d.order_id);
+                ro.setPhone(d.phone);
+                ro.setName(d.name);
+                ro.setAddress(d.address);
+                ro.setAppointment("" + d.appointment_time_begin + ',' + d.appointment_time_end);
+                ro.setSign_need_time(d.sign_time);
+                ro.setStatus(d.status);
+                ro.setVip_level(1);
+                ro.setArrive_time(d.arrive_time);
+                ro.setWait_time(d.wait_time);
+                ro.setLeave_time(d.leave_time);
+                ro.setFailure_reason(d.msg);
+                result.add(ro);
+            }
+            return result;
+        }
     }
 }
             

@@ -126,7 +126,7 @@ public class DeliveryController extends Controller {
 
 
     @SuppressWarnings("Duplicates")
-    public static Result loadPresetOrders() {
+    public static Result init() {
         if (Play.isDev()) {
             final Application app = Play.application();
 

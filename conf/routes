@@ -36,10 +36,11 @@ POST    /courier/:id/delete        controllers.CourierController.delete(id:Long)
 
 
 GET     /courier/:id/task/:date    controllers.CourierController.schedule(id:String, date:String)
+GET     /courier/:id/task/:date/lazy/ controllers.CourierController.fetch(id:String, date:String)
 
 POST    /oauth                     controllers.OAuthController.login()
 
-GET     /admin/init                controllers.DeliveryController.loadPresetOrders()
+GET     /admin/init                controllers.DeliveryController.init()
 GET     /admin/clean               controllers.DeliveryController.clear()
 
 #GET     /courier/:id               controllers.DeliveryController.login(id:Long)
