@@ -131,6 +131,9 @@ public class CourierController extends Controller {
 
         List<ResultOrder> results = AntColonyVRPTW.schedule(deliveries, Delivery.find.all().size());
 //        List<ResultOrder> results = AntColonyVRPTW.testSchedule();
+        for (ResultOrder ro : results) {
+            ro.setCourierID(id);
+        }
         ResultWrapper resultWrapper = new ResultWrapper("success", id, results);
         resultWrapper.updateDeliveryDatabase();
         System.out.println(ok(Json.toJson(resultWrapper)));
@@ -194,6 +197,7 @@ public class CourierController extends Controller {
     }
 
 
+    @SuppressWarnings("Duplicates")
     private static class ResultWrapper {
         String status;
         String courierID;
@@ -266,6 +270,7 @@ public class CourierController extends Controller {
                 ro.setWait_time(d.wait_time);
                 ro.setLeave_time(d.leave_time);
                 ro.setFailure_reason(d.msg);
+                ro.setCourierID(d.courier.courier_id);
                 if (d.real_time != null) {
                     ro.setReal_time(d.real_time);
                 } else {

@@ -55,6 +55,24 @@ public class DeliveryController extends Controller {
             )
         );
     }
+
+    public static Result listByPhone(String phone) {
+        List<Delivery> deliveries = Delivery.find.where().eq("phone", phone).findList();
+        Collections.sort(deliveries, (o1, o2) -> {
+            if (o2.arrive_time == null && o1.arrive_time != null) {
+                return 1;
+            }
+            if (o2.arrive_time == null) {
+                return 0;
+            }
+            if (o1.arrive_time == null) {
+                return -1;
+            }
+            return o1.arrive_time - o2.arrive_time;
+        });
+        ResultWrapper resultWrapper = new ResultWrapper("success", phone, ResultWrapper.toResultOrderList(deliveries));
+        return ok(Json.toJson(resultWrapper));
+    }
     
     /**
      * Display the 'edit form' of a existing Delivery.
@@ -283,6 +301,8 @@ public class DeliveryController extends Controller {
         return ok(result);
     }
 
+
+    @SuppressWarnings("Duplicates")
     private static class ResultWrapper {
         String status;
         String courierID;
@@ -318,6 +338,57 @@ public class DeliveryController extends Controller {
             this.orders = orders;
         }
 
+        public void updateDeliveryDatabase() {
+            Courier courier = Courier.find.where().like("courier_id", courierID).findUnique();
+            for (ResultOrder o : orders) {
+//                System.out.println("orderid" + o.getOrderID());
+//                for (Delivery d : Delivery.find.where().like("order_id", o.getOrderID()).findList()) {
+//                    System.out.println(d.order_id + "," + d.address);
+//                }
+                Delivery delivery = Delivery.find.where().like("order_id", o.getOrderID()).findUnique();
+                delivery.arrive_time = o.getArrive_time();
+                delivery.leave_time = o.getLeave_time();
+                delivery.wait_time = o.getWait_time();
+                delivery.status = o.getStatus();
+                delivery.msg = o.getFailure_reason();
+                delivery.courier = courier;
+                delivery.save();
+
+                o.setName(delivery.name);
+                o.setPhone(delivery.phone);
+            }
+        }
+
+        public static List<ResultOrder> toResultOrderList(List<Delivery> deliveries) {
+            List<ResultOrder> result = new ArrayList<>();
+            for (Delivery d : deliveries) {
+                ResultOrder ro = new ResultOrder();
+
+                // send courier's phone and name when requested by user
+                Courier c = Courier.find.where().eq("courier_id", d.courier.courier_id).findUnique();
+                ro.setPhone(c.phone);
+                ro.setName(c.name);
+
+                ro.setOrderID(d.order_id);
+                ro.setAddress(d.address);
+                ro.setAppointment("" + d.appointment_time_begin + ',' + d.appointment_time_end);
+                ro.setSign_need_time(d.sign_time);
+                ro.setStatus(d.status);
+                ro.setVip_level(1);
+                ro.setArrive_time(d.arrive_time);
+                ro.setWait_time(d.wait_time);
+                ro.setLeave_time(d.leave_time);
+                ro.setFailure_reason(d.msg);
+                ro.setCourierID(d.courier.courier_id);
+                if (d.real_time != null) {
+                    ro.setReal_time(d.real_time);
+                } else {
+                    ro.setReal_time(0);
+                }
+                result.add(ro);
+            }
+            return result;
+        }
     }
 }
             

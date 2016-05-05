@@ -9,6 +9,7 @@ import java.util.Comparator;
 public class ResultOrder implements Comparator<ResultOrder> {
 
     private String orderID;
+    private String courierID;
     private String name;
     private String phone;
     private String address;
@@ -21,6 +22,14 @@ public class ResultOrder implements Comparator<ResultOrder> {
     private int leave_time;
     private long real_time;
     private String failure_reason;
+
+    public String getCourierID() {
+        return courierID;
+    }
+
+    public void setCourierID(String courierID) {
+        this.courierID = courierID;
+    }
 
     public long getReal_time() {
         return real_time;

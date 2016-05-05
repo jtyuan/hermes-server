@@ -189,7 +189,7 @@ public class AntColonyVRPTW {
                     order.setAddress(o.address);
                     order.setAppointment("" + o.appointment_time_begin+ "," + o.appointment_time_end);
                     order.setSign_need_time(o.sign_time);
-                    orders.remove(o);
+                    order.setCourierID(o.courier.courier_id);
                     break;
                 }
             }
