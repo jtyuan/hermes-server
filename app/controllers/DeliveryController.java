@@ -1,7 +1,9 @@
 package controllers;
 
 import com.alibaba.fastjson.JSONArray;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import configs.Constants;
 import controllers.evaluator.MultiThreadWeb;
 import controllers.scheduler.*;
 import play.Application;
@@ -17,9 +19,7 @@ import views.html.*;
 import models.*;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 /**
  * Manage a database of computers
@@ -118,13 +118,6 @@ public class DeliveryController extends Controller {
         return GO_HOME;
     }
 
-    public static Result schedule(Long id, String date) {
-        ResultWrapper resultWrapper = new ResultWrapper("success", String.valueOf(id), AntColonyVRPTW.testSchedule());
-        System.out.println(ok(Json.toJson(resultWrapper)));
-        return ok(Json.toJson(resultWrapper));
-    }
-
-
     @SuppressWarnings("Duplicates")
     public static Result init() {
         if (Play.isDev()) {
@@ -162,13 +155,13 @@ public class DeliveryController extends Controller {
                 //order.getVip_level()
                 points.add(p);
                 addresses[i] = p.getAddress();
-                if (Delivery.find.where().like("order_id", order.getOrderID()) != null) {
+                if (Delivery.find.where().like("order_id", order.getOrderID()).findList().size() == 0) {
                     delivery.order_id = order.getOrderID();
                     delivery.name = RandomValue.getChineseName();
                     delivery.phone = RandomValue.getTel();
                     delivery.address = order.getAddress();
                     delivery.sign_time = order.getSignTime();
-                    delivery.status = 0;
+                    delivery.status = Constants.STATUS_UNINFORMED;
                     delivery.appointment_time_begin = order.getAppointment().get(0);
                     delivery.appointment_time_end = order.getAppointment().get(1);
                     delivery.save();
@@ -207,6 +200,23 @@ public class DeliveryController extends Controller {
         return ok("Not in DEV mode");
     }
 
+    public static Result reset() {
+        if (Play.isDev()) {
+            List<Delivery> deliveries = Delivery.find.where().gt("arrive_time", 0).findList();
+            for (Delivery d : deliveries) {
+                d.status = Constants.STATUS_UNINFORMED;
+                d.save();
+            }
+            Collections.sort(deliveries, (d1, d2) -> d1.arrive_time - d2.arrive_time);
+            for (int i = 0; i < Constants.MAX_INFORM; ++i) {
+                Delivery delivery = deliveries.get(i);
+                DeliveryController.inform(delivery.order_id, String.valueOf(Constants.STATUS_READY));
+            }
+            return ok("Done");
+        }
+        return ok("Not in DEV mode");
+    }
+
     public static Result clear() {
         if (Play.isDev()) {
             List<Delivery> deliveries = Delivery.find.all();
@@ -215,6 +225,63 @@ public class DeliveryController extends Controller {
             return ok("Done");
         }
         return ok("Not in DEV mode");
+    }
+
+    public static Result inform(String id, String s) {
+
+        Delivery delivery = Delivery.find.where().like("order_id", id).findUnique();
+
+        if (s.equals(String.valueOf(Constants.STATUS_UNINFORMED))) {
+            delivery.status = Constants.STATUS_UNINFORMED;
+            delivery.save();
+        } else if (s.equals(String.valueOf(Constants.STATUS_READY))) {
+            delivery.status = Constants.STATUS_READY;
+            delivery.save();
+            // TODO pushToUser(id);
+        } else if (s.equals(String.valueOf(Constants.STATUS_COMPLETED))) {
+            if (delivery.status != Constants.STATUS_COMPLETED) {
+                delivery.status = Constants.STATUS_COMPLETED;
+                delivery.msg = "配送成功";
+                delivery.real_time = System.currentTimeMillis() / 1000;
+                delivery.save();
+
+                List<Delivery> deliveries = Delivery.find.where()
+                        .eq("status", Constants.STATUS_UNINFORMED)
+                        .gt("arrive_time", 0).findList();
+
+                Collections.sort(deliveries,
+                        (d1, d2) -> d1.arrive_time - d2.arrive_time);
+                if (deliveries.size() > 0) {
+                    inform(deliveries.get(0).order_id, String.valueOf(Constants.STATUS_READY));
+                }
+            }
+        } else {
+            if (delivery.status != Constants.STATUS_FAILED) {
+                delivery.status = Constants.STATUS_FAILED;
+                delivery.msg = s;
+                delivery.real_time = System.currentTimeMillis() / 1000;
+                delivery.save();
+
+                List<Delivery> deliveries = Delivery.find.where()
+                        .eq("status", Constants.STATUS_UNINFORMED)
+                        .gt("arrive_time", 0).findList();
+
+                Collections.sort(deliveries,
+                        (d1, d2) -> d1.arrive_time - d2.arrive_time);
+                if (deliveries.size() > 0) {
+                    inform(deliveries.get(0).order_id, String.valueOf(Constants.STATUS_READY));
+                }
+            }
+        }
+
+        System.out.println(id + " informed with " + s);
+
+        ObjectNode result = Json.newObject();
+        result.put("status", "ok");
+        result.put("msg", "订单[" + id + "]修改完成");
+        result.put("informed_order", Json.toJson(delivery));
+
+        return ok(result);
     }
 
     private static class ResultWrapper {

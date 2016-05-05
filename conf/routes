@@ -14,10 +14,12 @@ POST    /delivery                  controllers.DeliveryController.save()
 
 # Edit existing delivery task
 GET     /delivery/:id              controllers.DeliveryController.edit(id:Long)
-POST     /delivery/:id              controllers.DeliveryController.update(id:Long)
+POST    /delivery/:id              controllers.DeliveryController.update(id:Long)
 
 # Delete a delivery task
 POST    /delivery/:id/delete       controllers.DeliveryController.delete(id:Long)
+# Change the status of delivery with order_id
+GET     /delivery/:id/inform/:s    controllers.DeliveryController.inform(id:String, s:String)
 
 
 # Delivery task list (look at the default values for pagination parameters)
@@ -31,6 +33,9 @@ POST    /courier                   controllers.CourierController.save()
 GET     /courier/:id               controllers.CourierController.edit(id:Long)
 PUT     /courier/:id               controllers.CourierController.update(id:Long)
 
+GET     /courier/:id/loc           controllers.CourierController.getLoc(id:String)
+POST    /courier/:id/loc           controllers.CourierController.updateLoc(id:String)
+
 # Delete a delivery task
 POST    /courier/:id/delete        controllers.CourierController.delete(id:Long)
 
@@ -42,6 +47,7 @@ POST    /oauth                     controllers.OAuthController.login()
 
 GET     /admin/init                controllers.DeliveryController.init()
 GET     /admin/clean               controllers.DeliveryController.clear()
+GET     /admin/reset               controllers.DeliveryController.reset()
 
 #GET     /courier/:id               controllers.DeliveryController.login(id:Long)
 #POST    /courier                   controllers.DeliveryController.register(name:String, phone:String)

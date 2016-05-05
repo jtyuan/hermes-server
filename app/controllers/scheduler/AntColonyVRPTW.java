@@ -5,13 +5,85 @@ import com.alibaba.fastjson.JSONArray;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import models.Delivery;
 import play.Application;
 import play.Play;
 
 @SuppressWarnings("Duplicates")
 public class AntColonyVRPTW {
+
+    // order_num != order.size(), the former is the total number of orders
+    public static ArrayList<ResultOrder> schedule(List<Delivery> orders, int order_num) {
+        Application app = Play.application();
+
+
+        double[][] dist_mat_arr = new double[order_num][order_num];
+        double[][] time_mat_arr = new double[order_num][order_num];
+
+        String json_str;
+
+        ObjectMapper om = new ObjectMapper();
+
+        File distFile = app.getFile("public/data/dist_mat.json");
+        File timeFile = app.getFile("public/data/time_mat.json");
+        try {
+            FileReader distReader= new FileReader(distFile);
+            BufferedReader distBuf = new BufferedReader(distReader);
+            try {
+                json_str = distBuf.readLine();
+                dist_mat_arr = om.readValue(json_str, double[][].class);
+//                System.out.println(json_str);
+                distBuf.close();
+                distReader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+
+            FileReader timeReader= new FileReader(timeFile);
+            BufferedReader timeBuf = new BufferedReader(timeReader);
+            try {
+                json_str = timeBuf.readLine();
+                time_mat_arr = om.readValue(json_str, double[][].class);
+//                System.out.println(json_str);
+                timeBuf.close();
+                timeReader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        ArrayList<Point> points = new ArrayList<>();
+        for (int i = 0; i < 50; ++i) {
+            Delivery order = orders.get(i);
+//            System.out.println(order.getSignTime());
+            Point p = new Point(i, order.order_id, order.address, new Pair<>(order.appointment_time_begin, order.appointment_time_end),
+                    1, order.sign_time, 0);
+            //order.getVip_level()
+            points.add(p);
+        }
+
+
+        ArrayList<ArrayList<Double>> dist_mat = new ArrayList<>();
+        ArrayList<ArrayList<Double>> time_mat = new ArrayList<>();
+        for (int i = 0; i < orders.size(); ++i) {
+            ArrayList<Double> dist_tmp = new ArrayList<>();
+            ArrayList<Double> time_tmp = new ArrayList<>();
+            for (int j = 0; j < orders.size(); ++j) {
+                dist_tmp.add(dist_mat_arr[(int)(long)orders.get(i).id][(int)(long)orders.get(j).id]);
+                time_tmp.add(time_mat_arr[(int)(long)orders.get(i).id][(int)(long)orders.get(j).id]);
+            }
+            dist_mat.add(dist_tmp);
+            time_mat.add(time_tmp);
+        }
+        ScheduleResult result = new AntColonyVRPTW().runSchedule(points, dist_mat, time_mat);
+        return parseDeliveryArray(result, orders);
+    }
 
     public static ArrayList<ResultOrder> testSchedule() {
         final Application app = Play.application();
@@ -104,10 +176,57 @@ public class AntColonyVRPTW {
             time_mat.add(time_tmp);
         }
         ScheduleResult result = new AntColonyVRPTW().runSchedule(points, dist_mat, time_mat);
-        return parse(result, JsonOrderArray);
+        return parseJsonOrderArray(result, JsonOrderArray);
     }
 
-    private static ArrayList<ResultOrder> parse(ScheduleResult result, ArrayList<JsonOrder> orders) {
+    private static ArrayList<ResultOrder> parseDeliveryArray(ScheduleResult result, List<Delivery> orders) {
+        ArrayList<ResultOrder> list = new ArrayList<>();
+        for (DonePoint dp : result.getAlreadySchedule()) {
+            ResultOrder order = new ResultOrder();
+            order.setOrderID(dp.getOrderID());
+            for (Delivery o : orders) {
+                if (o.order_id.equals(dp.getOrderID())) {
+                    order.setAddress(o.address);
+                    order.setAppointment("" + o.appointment_time_begin+ "," + o.appointment_time_end);
+                    order.setSign_need_time(o.sign_time);
+                    orders.remove(o);
+                    break;
+                }
+            }
+            order.setStatus(0); // Uninformed
+            order.setVip_level(1);
+            order.setArrive_time(dp.getArrive_time());
+            order.setWait_time(dp.getWait_time());
+            order.setLeave_time(dp.getLeave_time());
+            order.setReal_time(0);
+            order.setFailure_reason("规划成功");
+            list.add(order);
+        }
+        for (String id : result.getConflictOrdersID()) {
+            ResultOrder order = new ResultOrder();
+            order.setOrderID(id);
+            for (Delivery o : orders) {
+                if (o.order_id.equals(id)) {
+                    order.setAddress(o.address);
+                    order.setAppointment("" + o.appointment_time_begin+ "," + o.appointment_time_end);
+                    order.setSign_need_time(o.sign_time);
+                    orders.remove(o);
+                    break;
+                }
+            }
+            order.setStatus(3); // Failed
+            order.setVip_level(1);
+            order.setArrive_time(0);
+            order.setWait_time(0);
+            order.setLeave_time(0);
+            order.setReal_time(0);
+            order.setFailure_reason("规划冲突");
+            list.add(order);
+        }
+        return list;
+    }
+
+    private static ArrayList<ResultOrder> parseJsonOrderArray(ScheduleResult result, ArrayList<JsonOrder> orders) {
         ArrayList<ResultOrder> list = new ArrayList<>();
         for (DonePoint dp : result.getAlreadySchedule()) {
             ResultOrder order = new ResultOrder();

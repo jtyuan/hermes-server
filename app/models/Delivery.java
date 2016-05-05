@@ -46,7 +46,7 @@ public class Delivery extends Model {
 
     public Integer leave_time;
 
-    public Integer real_time;
+    public Long real_time;
 
     public String msg;
 

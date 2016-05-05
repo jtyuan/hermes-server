@@ -31,7 +31,7 @@ create table delivery (
   arrive_time               integer,
   wait_time                 integer,
   leave_time                integer,
-  real_time                 integer,
+  real_time                 bigint,
   msg                       varchar(255),
   address                   varchar(255),
   courier_id                bigint,

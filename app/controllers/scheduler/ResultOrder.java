@@ -1,11 +1,12 @@
 package controllers.scheduler;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 
 /**
  * Created by bilibili on 16/4/19.
  */
-public class ResultOrder {
+public class ResultOrder implements Comparator<ResultOrder> {
 
     private String orderID;
     private String name;
@@ -18,7 +19,16 @@ public class ResultOrder {
     private int arrive_time;
     private int wait_time;
     private int leave_time;
+    private long real_time;
     private String failure_reason;
+
+    public long getReal_time() {
+        return real_time;
+    }
+
+    public void setReal_time(long real_time) {
+        this.real_time = real_time;
+    }
 
     public String getName() {
         return name;
@@ -114,5 +124,10 @@ public class ResultOrder {
 
     public void setFailure_reason(String failure_reason) {
         this.failure_reason = failure_reason;
+    }
+
+    @Override
+    public int compare(ResultOrder o1, ResultOrder o2) {
+        return (o1.arrive_time - o2.arrive_time >= 0) ? 1 : -1;
     }
 }

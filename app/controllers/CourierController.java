@@ -1,19 +1,25 @@
 package controllers;
 
 import com.alibaba.fastjson.JSONArray;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import configs.Constants;
 import controllers.scheduler.*;
 import models.Courier;
 import models.Delivery;
 import play.Application;
 import play.Play;
+import play.data.DynamicForm;
 import play.data.Form;
 import play.libs.Json;
+import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
 import views.html.*;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static play.data.Form.form;
@@ -116,7 +122,16 @@ public class CourierController extends Controller {
     }
 
     public static Result schedule(String id, String date) {
-        ResultWrapper resultWrapper = new ResultWrapper("success", id, AntColonyVRPTW.testSchedule());
+        List<Delivery> deliveries = Delivery.find.where().like("courier.courier_id", id).findList();
+
+        Collections.sort(deliveries, (d1, d2) -> d1.arrive_time - d2.arrive_time);
+        for (int i = 0; i < Constants.MAX_INFORM; ++i) {
+            DeliveryController.inform(deliveries.get(i).order_id, String.valueOf(Constants.STATUS_READY));
+        }
+
+        List<ResultOrder> results = AntColonyVRPTW.schedule(deliveries, Delivery.find.all().size());
+//        List<ResultOrder> results = AntColonyVRPTW.testSchedule();
+        ResultWrapper resultWrapper = new ResultWrapper("success", id, results);
         resultWrapper.updateDeliveryDatabase();
         System.out.println(ok(Json.toJson(resultWrapper)));
         return ok(Json.toJson(resultWrapper));
@@ -124,9 +139,58 @@ public class CourierController extends Controller {
 
     public static Result fetch(String id, String date) {
         List<Delivery> deliveries = Delivery.find.where().like("courier.courier_id", id).findList();
+
+        Collections.sort(deliveries, (d1, d2) -> d1.arrive_time - d2.arrive_time);
+//        for (int i = 0; i < Constants.MAX_INFORM; ++i) {
+//            DeliveryController.inform(deliveries.get(i).order_id, String.valueOf(Constants.STATUS_READY));
+//        }
+
         ResultWrapper resultWrapper = new ResultWrapper("success", id, ResultWrapper.toResultOrderList(deliveries));
         System.out.println(ok(Json.toJson(resultWrapper)));
         return ok(Json.toJson(resultWrapper));
+    }
+
+
+    public static Result getLoc(String id) {
+        Courier courier = Courier.find.where().eq("courier_id", id).findUnique();
+        ObjectNode result = Json.newObject();
+        if (courier != null) {
+            result.put("status", "ok");
+            result.put("lat", courier.current_lat);
+            result.put("lon", courier.current_lon);
+        } else {
+            result.put("status", "failed");
+        }
+        return ok(result);
+    }
+
+    public static Result updateLoc(String id) {
+        DynamicForm dynamicForm = Form.form().bindFromRequest();
+        ObjectNode result = Json.newObject();
+        String lat = dynamicForm.get("lat");
+        String lon = dynamicForm.get("lon");
+        System.out.println("updateLoc: " + lat + "," + lon);
+        if(lat == null) {
+            result.put("status", "failed");
+            result.put("msg", "Missing parameter [lat]");
+        } else if (lon == null) {
+            result.put("status", "failed");
+            result.put("msg", "Missing parameter [long]");
+        } else {
+            Courier courier = Courier.find.where().eq("courier_id", id).findUnique();
+            if (courier != null) {
+                courier.current_lat = Double.valueOf(lat);
+                courier.current_lon = Double.valueOf(lon);
+                courier.save();
+                result.put("status", "ok");
+                result.put("msg", "sccuess");
+            } else {
+                result.put("status", "failed");
+                result.put("msg", "courier not exist");
+            }
+        }
+        return ok(result);
+
     }
 
 
@@ -202,10 +266,15 @@ public class CourierController extends Controller {
                 ro.setWait_time(d.wait_time);
                 ro.setLeave_time(d.leave_time);
                 ro.setFailure_reason(d.msg);
+                if (d.real_time != null) {
+                    ro.setReal_time(d.real_time);
+                } else {
+                    ro.setReal_time(0);
+                }
                 result.add(ro);
             }
             return result;
         }
     }
 }
-            
+

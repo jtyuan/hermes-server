@@ -18,18 +18,17 @@ public class OAuthController extends Controller {
 
 
     // Called by auth server, for redirection
-    @BodyParser.Of(BodyParser.Json.class)
     public static Result login() {
         DynamicForm dynamicForm = Form.form().bindFromRequest();
         ObjectNode result = Json.newObject();
 //        JsonNode json = request().body().asJson();
 
-        System.out.println("???");
         String courier_id = dynamicForm.get("courier_id");
-        System.out.println(courier_id);
         String access_token = dynamicForm.get("access_token");
         String refresh_token = dynamicForm.get("refresh_token");
         String expires_in = dynamicForm.get("expires_in");
+
+        System.out.println("Courier [" + courier_id + "] logged in with access_token=" + access_token);
         if(access_token == null) {
 //            return badRequest("Missing parameter [access_token]");
             result.put("result", "failed: missing [access_token]");
