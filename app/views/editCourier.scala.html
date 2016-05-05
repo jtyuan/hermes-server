@@ -17,7 +17,9 @@
             @inputText(courierForm("phone"), '_label -> "Courier Phone #", '_help -> "")
             @inputText(courierForm("access_token"), '_label -> "Access Token", '_help -> "")
             @inputText(courierForm("refresh_token"), '_label -> "Refresh Token", '_help -> "")
-            @inputText(courierForm("expires_in"), '_label -> "Expires In (s)", '_help -> "")
+            @inputText(courierForm("expires_by"), '_label -> "Expires By (s)", '_help -> "")
+            @inputText(courierForm("current_lat"), '_label -> "Current Latitude", '_help -> "")
+            @inputText(courierForm("current_lon"), '_label -> "Current Longitude", '_help -> "")
 
             @select(
                 courierForm("working_area.id"),

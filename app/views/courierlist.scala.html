@@ -1,5 +1,20 @@
 @(currentPage: com.avaje.ebean.Page[Courier], currentSortBy: String, currentOrder: String, currentFilter: String)
 
+
+@****************************************
+* Helper formatting date from timestamp *
+****************************************@
+@toDateString(ts:Long) = @{
+    import java.text.SimpleDateFormat
+    import java.util.Calendar
+
+    var sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm")
+    var calendar = Calendar.getInstance(Locale.CHINA)
+    calendar.setTimeInMillis(ts*1000)
+
+    sdf.format(calendar.getTime)
+}
+
 @****************************************
 * Helper generating navigation links    *
 ****************************************@
@@ -70,14 +85,13 @@
                     @header("courier_id", "Courier ID")
                     @header("name", "Courier Name")
                     @header("phone", "Courier Phone #")
-                    @header("working_area.city", "City")
-                    @header("working_area.dist", "District")
                     @header("current_lat", "Latitude")
                     @header("current_lon", "Longitude")
+                    @header("access_token", "access_token")
+                    @header("expires", "expires_by")
                 </tr>
             </thead>
             <tbody>
-
             @for(courier <- currentPage.getList) {
                 <tr>
                     <td><a href="@routes.CourierController.edit(courier.id)">@courier.courier_id</a></td>
@@ -96,20 +110,6 @@
                     }
                     </td>
                     <td>
-                    @if(courier.working_area == null) {
-                        <em>-</em>
-                    } else {
-                        @courier.working_area.city
-                    }
-                    </td>
-                    <td>
-                    @if(courier.working_area == null) {
-                        <em>-</em>
-                    } else {
-                        @courier.working_area.dist
-                    }
-                    </td>
-                    <td>
                     @if(courier.current_lat == null) {
                         <em>-</em>
                     } else {
@@ -122,6 +122,16 @@
                     } else {
                         @courier.current_lon
                     }
+                    </td>
+                    <td>
+                    @if(courier.access_token == null) {
+                        <em>-</em>
+                    } else {
+                        @courier.access_token
+                    }
+                    </td>
+                    <td>
+                    @toDateString(courier.expires_by)
                     </td>
                 </tr>
             }
